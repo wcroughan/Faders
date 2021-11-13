@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class FaderHandle : MonoBehaviour
 {
-    public float minY = 0f;
+    public float minY = -1f;
     public float maxY = 1f;
 
     private Vector3 mouseDragOffset;
