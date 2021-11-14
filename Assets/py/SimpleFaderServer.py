@@ -9,7 +9,7 @@ while True:
     if i == "q":
         break
 
-    sock.SendData('Sent from Python: ' + i)  # Send this string to other application
+    sock.SendData("FC {}".format(i))  # Send this string to other application
 
     data = sock.ReadReceivedData()  # read data
 
