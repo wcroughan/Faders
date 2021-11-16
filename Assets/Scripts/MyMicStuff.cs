@@ -12,22 +12,25 @@ public class MyMicStuff : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // string micname = "front:CARD=Microphone,DEV=0";
-        // foreach (string devname in Microphone.devices)
-        // {
-        //     // if (devname == micname)
-        //     // {
-        //     int minFreq, maxFreq;
-        //     Microphone.GetDeviceCaps(devname, out minFreq, out maxFreq);
-        //     Debug.Log(string.Format("Name: {0}, ({1} - {2})", devname, minFreq, maxFreq));
+        string micname = "front:CARD=Microphone,DEV=0";
+        foreach (string devname in Microphone.devices)
+        {
+            // if (devname == micname)
+            // {
+            int minFreq, maxFreq;
+            Microphone.GetDeviceCaps(devname, out minFreq, out maxFreq);
+            Debug.Log(string.Format("Name: {0}, ({1} - {2})", devname, minFreq, maxFreq));
+            if (devname.Contains("Monitor") && devname.Contains("Built-in"))
+                micname = devname;
 
-        //     // Debug.Log("Found it!");
-        //     // }
-        // }
-        mic = Microphone.Start("", true, 999, FREQ);
+            // Debug.Log("Found it!");
+            // }
+        }
+        mic = Microphone.Start(micname, true, 999, FREQ);
         audsrc = GetComponent<AudioSource>();
         audsrc.clip = mic;
         audsrc.loop = true;
+        // audsrc.mute = true;
         audsrc.Play();
 
         EQMesh eqm = FindObjectOfType<EQMesh>();
@@ -35,7 +38,7 @@ public class MyMicStuff : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         audsrc.GetSpectrumData(outvals, 0, FFTWindow.Rectangular);
         // float sum = 0;

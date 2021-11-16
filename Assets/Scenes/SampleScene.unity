@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.4465785, g: 0.49641252, b: 0.574817, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -334,18 +334,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   meshResolution: 9
-  eqResolution: 11
+  eqResolution: 13
   radiusInner: 1.5
   thickness: 0.5
-  movementAmt: 1.5
+  movementAmt: 0.1
   colorLow: {r: 0, g: 1, b: 1, a: 1}
   colorHigh: {r: 1, g: 0, b: 0, a: 1}
-  volumeColorFactor: 0.7
-  smoothFactor: 7.69
+  volumeColorFactor: 0.3
+  falloffFactor: 0.001
   rotationSpeed: 5
   rotationSlowFactor: 10
   rotationResponsiveness: 15
-  freqBandEqualizeFactor: 50
+  freqBandEqualizeFactor: 20
 --- !u!4 &272566142
 Transform:
   m_ObjectHideFlags: 0

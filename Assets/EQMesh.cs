@@ -16,9 +16,10 @@ public class EQMesh : MonoBehaviour
     public float movementAmt = 1.5f;
     public Color colorLow = Color.cyan;
     public Color colorHigh = Color.red;
-    [Range(0.1f, 10.0f)]
-    public float volumeColorFactor = 0.7f;
-    public float smoothFactor = 15.0f;
+    [Range(0.01f, 1.0f)]
+    public float volumeColorFactor = 0.3f;
+    [Range(0.001f, 0.999f)]
+    public float falloffFactor = 0.1f;
     public float rotationSpeed = 1f;
     public float rotationSlowFactor = 1f;
     public float rotationResponsiveness = 1f;
@@ -33,6 +34,7 @@ public class EQMesh : MonoBehaviour
     float[] freqBandPower;
     Material mat;
     float currentRotationSpeed;
+    float[] segmentHeight;
 
     void Awake()
     {
@@ -43,6 +45,7 @@ public class EQMesh : MonoBehaviour
         freqBandPower = new float[numFreqBands];
         numRingSegments = meshResolution * numFreqBands;
         currentRotationSpeed = rotationSpeed;
+        segmentHeight = new float[numRingSegments + 1];
     }
 
     // Start is called before the first frame update
@@ -128,15 +131,26 @@ public class EQMesh : MonoBehaviour
                 i2 += 1;
             }
             float t = ((float)i - i1 * meshResolution) / ((float)meshResolution);
-            Vector3 pp = v[2 * i];
-            Vector3 p = pp.normalized;
-            p *= radiusInner + movementAmt * Mathf.SmoothStep(freqBandPower[i1], freqBandPower[i2 % numFreqBands], t);
-            v[2 * i] = Vector3.Lerp(pp, p, Time.deltaTime * smoothFactor);
+            float h = Mathf.SmoothStep(freqBandPower[i1], freqBandPower[i2 % numFreqBands], t);
+            if (h > segmentHeight[i])
+            {
+                segmentHeight[i] = h;
+            }
+            else
+            {
+                // float ff = Mathf.Lerp(1f, falloffFactor, Time.deltaTime);
+                float ff = Mathf.Pow(falloffFactor / 1000f, Time.deltaTime);
+                h = segmentHeight[i] * ff;
+                segmentHeight[i] = h;
+            }
 
-            pp = v[2 * i + 1];
-            p = pp.normalized;
-            p *= radiusOuter + movementAmt * Mathf.SmoothStep(freqBandPower[i1], freqBandPower[i2 % numFreqBands], t);
-            v[2 * i + 1] = Vector3.Lerp(v[2 * i + 1], p, Time.deltaTime * smoothFactor);
+            Vector3 p = v[2 * i].normalized;
+            p *= radiusInner + movementAmt * h;
+            v[2 * i] = p;
+
+            p = v[2 * i + 1].normalized;
+            p *= radiusOuter + movementAmt * h;
+            v[2 * i + 1] = p;
         }
 
         m.SetVertices(v);
