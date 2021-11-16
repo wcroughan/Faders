@@ -28,7 +28,8 @@ public class UdpSocket : MonoBehaviour
     [SerializeField] int rxPort = 8000; // port to receive data from Python on
     [SerializeField] int txPort = 8001; // port to send data to Python on
 
-    public FaderController faderController;
+    FaderController faderController;
+    AValsManager aValsManager;
 
     // Create necessary UdpClient objects
     UdpClient client;
@@ -66,6 +67,12 @@ public class UdpSocket : MonoBehaviour
         print("UDP Comms Initialised");
     }
 
+    void Start()
+    {
+        faderController = FindObjectOfType<FaderController>();
+        aValsManager = FindObjectOfType<AValsManager>();
+    }
+
     // Receive data, update packets received
     private void ReceiveData()
     {
@@ -76,7 +83,7 @@ public class UdpSocket : MonoBehaviour
                 IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
                 byte[] data = client.Receive(ref anyIP);
                 string text = Encoding.UTF8.GetString(data);
-                print(">> " + text);
+                // print(">> " + text);
                 ProcessInput(text);
             }
             catch (Exception err)
@@ -94,7 +101,15 @@ public class UdpSocket : MonoBehaviour
             string[] ss = input.Split(' ');
             int faderIdx = int.Parse(ss[1]);
             float faderVal = float.Parse(ss[2]);
-            faderController.SetFaderValue(faderIdx, faderVal);
+            faderController.SetFaderValue(faderIdx, faderVal, false);
+        }
+        else if (input.StartsWith("AVC "))
+        {
+            //Ableton value control message
+            string[] ss = input.Split(' ');
+            string valName = ss[1];
+            float val = float.Parse(ss[2]);
+            aValsManager.SetAVal(valName, val);
         }
 
         if (!isTxStarted) // First data arrived so tx started

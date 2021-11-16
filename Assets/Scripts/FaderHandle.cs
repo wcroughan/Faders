@@ -7,6 +7,10 @@ public class FaderHandle : MonoBehaviour
     public float minY = -1f;
     public float maxY = 1f;
 
+    FaderController faderController;
+    public int faderCC;
+    public int faderIdx;
+
     private Vector3 mouseDragOffset;
     private float mzCoord;
 
@@ -18,27 +22,30 @@ public class FaderHandle : MonoBehaviour
     {
         newYVal = minY;
         yvalNeedsUpdate = true;
+
+        faderController = FindObjectOfType<FaderController>();
     }
 
-    // void OnMouseDown()
-    // {
-    //     mzCoord = Camera.main.WorldToScreenPoint(gameObject.transform.position).z;
-    //     mouseDragOffset = gameObject.transform.position - GetMouseWorldPos();
-    // }
+    void OnMouseDown()
+    {
+        mzCoord = Camera.main.WorldToScreenPoint(gameObject.transform.position).z;
+        mouseDragOffset = gameObject.transform.position - GetMouseWorldPos();
+    }
 
-    // Vector3 GetMouseWorldPos()
-    // {
-    //     Vector3 mouseScreenPos = Input.mousePosition;
-    //     mouseScreenPos.z = mzCoord;
-    //     return Camera.main.ScreenToWorldPoint(mouseScreenPos);
-    // }
+    Vector3 GetMouseWorldPos()
+    {
+        Vector3 mouseScreenPos = Input.mousePosition;
+        mouseScreenPos.z = mzCoord;
+        return Camera.main.ScreenToWorldPoint(mouseScreenPos);
+    }
 
-    // void OnMouseDrag()
-    // {
-    //     Vector3 mp = GetMouseWorldPos() + mouseDragOffset;
-    //     float newy = Mathf.Clamp(mp.y, minY, maxY);
-    //     transform.position = new Vector3(transform.position.x, newy, transform.position.z);
-    // }
+    void OnMouseDrag()
+    {
+        Vector3 draggedFaderPos = GetMouseWorldPos() + mouseDragOffset;
+        float newFaderVal = Mathf.Clamp01(Mathf.InverseLerp(minY, maxY, draggedFaderPos.y));
+        faderController.SetFaderValue(faderIdx, newFaderVal);
+        // SetFaderValue(newFaderVal);
+    }
 
 
     // Update is called once per frame
@@ -56,6 +63,8 @@ public class FaderHandle : MonoBehaviour
         //val should be 0-1
         newYVal = Mathf.Lerp(minY, maxY, val);
         yvalNeedsUpdate = true;
+        Debug.Log(val);
     }
+
 
 }
