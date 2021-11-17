@@ -6,8 +6,6 @@ public class EQMesh : MonoBehaviour
 {
     [Range(1, 10)]
     public int meshResolution = 1;
-    [Range(6, 13)]
-    public int eqResolution = 6;
     [Range(0.1f, 3f)]
     public float radiusInner = 1.5f;
     [Range(0.1f, 3f)]
@@ -28,7 +26,6 @@ public class EQMesh : MonoBehaviour
     float[] eqVals; //min len 64, max len 8192
     MeshFilter mf;
     int numRingSegments;
-    int numEqVals;
     float radiusOuter;
     int numFreqBands;
     float[] freqBandPower;
@@ -36,21 +33,18 @@ public class EQMesh : MonoBehaviour
     float currentRotationSpeed;
     float[] segmentHeight;
 
-    void Awake()
+    // Start is called before the first frame update
+    void Start()
     {
-        numEqVals = (int)Mathf.Pow(2.0f, (float)eqResolution);
-        eqVals = new float[numEqVals];
+        MyMicStuff mms = FindObjectOfType<MyMicStuff>();
+        eqVals = mms.getEqVals();
         radiusOuter = radiusInner + thickness;
-        numFreqBands = eqResolution + 1;
+        numFreqBands = mms.getEqResolution() + 1;
         freqBandPower = new float[numFreqBands];
         numRingSegments = meshResolution * numFreqBands;
         currentRotationSpeed = rotationSpeed;
         segmentHeight = new float[numRingSegments + 1];
-    }
 
-    // Start is called before the first frame update
-    void Start()
-    {
         mf = GetComponent<MeshFilter>();
 
         const float TAU = 6.28318531f;
@@ -95,18 +89,13 @@ public class EQMesh : MonoBehaviour
         mat = GetComponent<MeshRenderer>().sharedMaterial;
     }
 
-    public float[] getEQValArray()
-    {
-        return eqVals;
-    }
-
     // Update is called once per frame
     void Update()
     {
         float sum = 0;
         int fbi = 0;
         freqBandPower[0] = 0;
-        for (int i = 0; i < numEqVals; i++)
+        for (int i = 0; i < eqVals.Length; i++)
         {
             if (i == Mathf.RoundToInt(Mathf.Pow(2f, fbi)))
             {
