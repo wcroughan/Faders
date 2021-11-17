@@ -2,16 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using UnityEngine.Audio;
 
 public class MyMicStuff : MonoBehaviour
 {
     [Range(6, 13)]
     public int eqResolution = 6;
+    public bool outputToText = false;
+    public AudioMixer mixer;
 
     AudioClip mic;
-    AudioSource audsrc;
+    List<AudioSource> audsrc;
     const int FREQ = 44100;
     float[] eqVals;
+    float[] tmpVals;
     int numEqVals;
 
     string outfilename;
@@ -21,39 +25,44 @@ public class MyMicStuff : MonoBehaviour
     {
         numEqVals = (int)Mathf.Pow(2.0f, (float)eqResolution);
         eqVals = new float[numEqVals];
+        tmpVals = new float[numEqVals];
         outfilename = "Assets/eqvals.txt";
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        sw = new StreamWriter(outfilename, false);
+        if (outputToText)
+            sw = new StreamWriter(outfilename, false);
 
-        string micname = "front:CARD=Microphone,DEV=0";
+        audsrc = new List<AudioSource>();
+        // mixer = Resources.Load("NewAudioMixer") as AudioMixer;
+        Debug.Log(mixer);
+        AudioMixerGroup[] groups = mixer.FindMatchingGroups("Master");
+        AudioMixerGroup nullGroup = groups[0];
         foreach (string devname in Microphone.devices)
         {
-            // if (devname == micname)
-            // {
-            int minFreq, maxFreq;
-            Microphone.GetDeviceCaps(devname, out minFreq, out maxFreq);
-            Debug.Log(string.Format("Name: {0}, ({1} - {2})", devname, minFreq, maxFreq));
-            if (devname.Contains("Monitor") && devname.Contains("Built-in"))
-                micname = devname;
-
-            // Debug.Log("Found it!");
-            // }
+            if (devname.Contains("Monitor"))
+            {
+                Debug.Log(string.Format("Connecting to audio device {0}", devname));
+                AudioSource a = gameObject.AddComponent<AudioSource>();
+                a.clip = Microphone.Start(devname, true, 999, FREQ);
+                a.loop = true;
+                a.outputAudioMixerGroup = nullGroup;
+                a.Play();
+                audsrc.Add(a);
+            }
+            else
+            {
+                Debug.Log(string.Format("Skipping dev {0}", devname));
+            }
         }
-        mic = Microphone.Start(micname, true, 999, FREQ);
-        audsrc = GetComponent<AudioSource>();
-        audsrc.clip = mic;
-        audsrc.loop = true;
-        // audsrc.mute = true;
-        audsrc.Play();
     }
 
     void OnApplicationQuit()
     {
-        sw.Close();
+        if (outputToText)
+            sw.Close();
     }
 
     public float[] getEqVals()
@@ -69,14 +78,19 @@ public class MyMicStuff : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        audsrc.GetSpectrumData(eqVals, 0, FFTWindow.Rectangular);
 
-        // sw.WriteLine(string.Join(",", eqVals));
-        // float sum = 0;
-        // foreach (float f in outvals)
-        // {
-        //     sum += f;
-        // }
-        // Debug.Log(sum);
+        for (int i = 0; i < eqVals.Length; i++)
+            eqVals[i] = 0;
+
+        foreach (AudioSource a in audsrc)
+        {
+            a.GetSpectrumData(tmpVals, 0, FFTWindow.Rectangular);
+            for (int i = 0; i < eqVals.Length; i++)
+                eqVals[i] += tmpVals[i];
+        }
+
+        if (outputToText)
+            sw.WriteLine(string.Join(",", eqVals));
+
     }
 }
